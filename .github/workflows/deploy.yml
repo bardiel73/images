@@ -1,4 +1,4 @@
-name: MY GHA
+name: GHAGHAGHA
 
 on:
   push:
@@ -24,25 +24,40 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Process Images and Build
-              run: |
-                mkdir dist
-                cp index.html dist/
-                
-                echo "{}" > dist/manifest.json
-      
-                for file in assets/*; do
-                  if [ -f "$file" ]; then
-                    ext="${file##*.}"
-                    hash=$(sha256sum "$file" | awk '{print $1}' | cut -c 1-32)
-                    new_name="${hash}.${ext}"
-                    
-                    cp "$file" "dist/$new_name"
-            
-                    filename=$(basename "$file")
-                    jq --arg k "$filename" --arg v "$new_name" '.[$k] = $v' dist/manifest.json > dist/tmp.json
-                    mv dist/tmp.json dist/manifest.json
-                  fi
-                done
+        run: |
+          mkdir dist
+          cp index.html dist/
+          
+          # Initialize JSON manifest
+          echo "{" > dist/manifest.json
+          
+          # Process files in assets directory
+          first=true
+          for file in assets/*; do
+            if [ -f "$file" ]; then
+              # Get file extension
+              ext="${file##*.}"
+              
+              # Generate SHA-256 hash based on file content, take first 32 chars
+              hash=$(sha256sum "$file" | awk '{print $1}' | cut -c 1-32)
+              
+              # New filename: <hash>.<ext>
+              new_name="${hash}.${ext}"
+              
+              # Copy to dist root
+              cp "$file" "dist/$new_name"
+              
+              # Append to manifest.json for frontend mapping
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo "," >> dist/manifest.json
+              fi
+              echo "  \"$(basename "$file")\": \"$new_name\"" >> dist/manifest.json
+            fi
+          done
+          
+          echo -e "\n}" >> dist/manifest.json
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
