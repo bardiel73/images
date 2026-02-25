@@ -13,12 +13,19 @@
             .then(manifest => {
                 const gallery = document.getElementById('gallery');
                 for (const [originalName, hashedName] of Object.entries(manifest)) {
+
                     const img = document.createElement('img');
                     img.src = `./${hashedName}`; 
                     img.alt = originalName;
                     img.style.maxWidth = '300px';
                     img.style.margin = '10px';
-                    
+
+                    const link = document.createElement('a');
+                    link.href = `./${hashedName}`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+
+                    link.appendChild(img);
                     gallery.appendChild(img);
                 }
             })
