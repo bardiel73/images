@@ -1,0 +1,72 @@
+name: Deploy images
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Process Images and Build
+        run: |
+          mkdir dist
+          cp index.html dist/
+          
+          # Initialize JSON manifest
+          echo "{" > dist/manifest.json
+          
+          # Process files in assets directory
+          first=true
+          for file in assets/*; do
+            if [ -f "$file" ]; then
+              # Get file extension
+              ext="${file##*.}"
+              
+              # Generate SHA-256 hash based on file content, take first 32 chars
+              hash=$(sha256sum "$file" | awk '{print $1}' | cut -c 1-32)
+              
+              # New filename: <hash>.<ext>
+              new_name="${hash}.${ext}"
+              
+              # Copy to dist root
+              cp "$file" "dist/$new_name"
+              
+              # Append to manifest.json for frontend mapping
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo "," >> dist/manifest.json
+              fi
+              echo "  \"$(basename "$file")\": \"$new_name\"" >> dist/manifest.json
+            fi
+          done
+          
+          echo -e "\n}" >> dist/manifest.json
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

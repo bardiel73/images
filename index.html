@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>images</title>
+</head>
+<body>
+    <div id="gallery"></div>
+
+    <script>
+        fetch('./manifest.json')
+            .then(response => response.json())
+            .then(manifest => {
+                const gallery = document.getElementById('gallery');
+                for (const [originalName, hashedName] of Object.entries(manifest)) {
+                    const img = document.createElement('img');
+                    img.src = `./${hashedName}`; 
+                    img.alt = originalName;
+                    img.style.maxWidth = '300px';
+                    img.style.margin = '10px';
+                    
+                    gallery.appendChild(img);
+                }
+            })
+            .catch(error => console.error('Error loading manifest:', error));
+    </script>
+</body>
+</html>
