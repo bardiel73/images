@@ -3,6 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>images</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+    </style>
 </head>
 <body>
     <div id="gallery"></div>
@@ -15,10 +24,11 @@
                 for (const [originalName, hashedName] of Object.entries(manifest)) {
 
                     const img = document.createElement('img');
-                    img.src = `./${hashedName}`; 
+                    img.src = `./${hashedName}`;
                     img.alt = originalName;
                     img.style.maxWidth = '300px';
-                    img.style.margin = '10px';
+                    img.style.maxHeight = '300px';
+                    img.style.margin = '3px';
 
                     const link = document.createElement('a');
                     link.href = `./${hashedName}`;
